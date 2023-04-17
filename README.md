@@ -1,3 +1,3 @@
-# Demo Extension
+# ulauncher extension for looks.wtf
 
-<img aligh="center" src="http://i.imgur.com/NFFR1tm.png">
+![Screenshot](./images/screenshot.png)
