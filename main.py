@@ -1,49 +1,81 @@
-import json
 import logging
-from time import sleep
-from ulauncher.api.client.Extension import Extension
+import os
+import sys
+import urllib.request
+
+import yaml
 from ulauncher.api.client.EventListener import EventListener
-from ulauncher.api.shared.event import KeywordQueryEvent, ItemEnterEvent
+from ulauncher.api.client.Extension import Extension, PreferencesUpdateEvent
+from ulauncher.api.shared.action.CopyToClipboardAction import \
+    CopyToClipboardAction
+from ulauncher.api.shared.action.RenderResultListAction import \
+    RenderResultListAction
+from ulauncher.api.shared.event import KeywordQueryEvent
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
-from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
-from ulauncher.api.shared.action.ExtensionCustomAction import ExtensionCustomAction
-from ulauncher.api.shared.action.HideWindowAction import HideWindowAction
+
+LOOKS_YML_URL = "https://raw.githubusercontent.com/leighmcculloch/looks.wtf/master/looks.yml"
+
 
 logger = logging.getLogger(__name__)
 
 
-class DemoExtension(Extension):
-
+class LooksWtfExtension(Extension):
     def __init__(self):
-        super(DemoExtension, self).__init__()
+        super(LooksWtfExtension, self).__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
-        self.subscribe(ItemEnterEvent, ItemEnterEventListener())
+        self.subscribe(
+            PreferencesUpdateEvent, PreferencesUpdateEventListener()
+        )
 
 
 class KeywordQueryEventListener(EventListener):
-
     def on_event(self, event, extension):
         items = []
-        logger.info('preferences %s' % json.dumps(extension.preferences))
-        for i in range(5):
-            item_name = extension.preferences['item_name']
-            data = {'new_name': '%s %s was clicked' % (item_name, i)}
-            items.append(ExtensionResultItem(icon='images/icon.png',
-                                             name='%s %s' % (item_name, i),
-                                             description='Item description %s' % i,
-                                             on_enter=ExtensionCustomAction(data, keep_app_open=True)))
+
+        data = download_looks(False)
+
+        query = str(event.get_argument()).lower()
+        if len(query) < 2:
+            return None
+
+        for item in data:
+            if query in str(item.get("title")).lower():
+                items.append(
+                    ExtensionResultItem(
+                        icon="images/icon.png",
+                        name=str(item.get("title")),
+                        description=item.get("plain"),
+                        on_enter=CopyToClipboardAction(
+                            item.get("plain"),
+                        ),
+                    )
+                )
 
         return RenderResultListAction(items)
 
 
-class ItemEnterEventListener(EventListener):
+# If file does not exist on disk download it
+def download_looks(force: bool):
+    # check if file exists
+    if os.path.isfile(os.path.join(sys.path[0], "looks.yml")) and not force:
+        logger.info("Load looks from file")
+        with open(os.path.join(sys.path[0], "looks.yml"), "r") as stream:
+            return yaml.safe_load(stream)
 
+    logger.info("Load looks from github")
+    urllib.request.urlretrieve(
+        LOOKS_YML_URL, os.path.join(sys.path[0], "looks.yml")
+    )
+    with open(os.path.join(sys.path[0], "looks.yml"), "r") as stream:
+        return yaml.safe_load(stream)
+
+
+class PreferencesUpdateEventListener(EventListener):
     def on_event(self, event, extension):
-        data = event.get_data()
-        return RenderResultListAction([ExtensionResultItem(icon='images/icon.png',
-                                                           name=data['new_name'],
-                                                           on_enter=HideWindowAction())])
+        if event.id == "reset" and event.new_value == "yes":
+            download_looks(True)
+            extension.preferences["reset"] = "-"
 
 
-if __name__ == '__main__':
-    DemoExtension().run()
+if __name__ == "__main__":
+    LooksWtfExtension().run()

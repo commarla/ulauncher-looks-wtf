@@ -1,32 +1,34 @@
 {
   "required_api_version": "^2.0.0",
-  "name": "Demo",
-  "description": "Demo extension",
-  "developer_name": "Aleksandr Gornostal",
+  "name": "looks.wtf",
+  "description": "Copy a look from looks.wtf to your clipboard",
+  "developer_name": "commarla",
   "icon": "images/icon.png",
   "options": {
-    "query_debounce": 0.05
+    "query_debounce": 0.3
   },
   "preferences": [
     {
-      "id": "demo_kw",
+      "id": "looks_wtf",
       "type": "keyword",
-      "name": "Demo",
-      "default_value": "dm"
+      "name": "Looks",
+      "default_value": "look"
     },
     {
-      "id": "item_name",
-      "type": "input",
-      "name": "Item name",
-      "description": "Name for each item",
-      "default_value": "Item"
-    },
-    {
-      "id": "memo",
-      "type": "text",
-      "name": "Memo",
-      "description": "Write something here",
-      "default_value": ""
+      "id": "reset",
+      "type": "select",
+      "name": "Reset cache",
+      "description": "Redownload the looks.wtf yaml file",
+      "options": [
+        {
+          "text": "-",
+          "value": "-"
+        },
+        {
+          "text": "Yes",
+          "value": "yes"
+        }
+      ]
     }
   ]
 }
