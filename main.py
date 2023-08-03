@@ -13,7 +13,7 @@ from ulauncher.api.shared.action.RenderResultListAction import \
 from ulauncher.api.shared.event import KeywordQueryEvent
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 
-LOOKS_YML_URL = "https://raw.githubusercontent.com/leighmcculloch/looks.wtf/master/looks.yml"
+LOOKS_YML_URL = "https://raw.githubusercontent.com/leighmcculloch/looks.wtf/main/data/looks.json"
 
 
 logger = logging.getLogger(__name__)
